@@ -1,0 +1,156 @@
+---
+ticketingapp:
+  needs:
+    - sharedeks
+  steps:
+    - name: instances
+      extension: Terraform
+      source: /Users/matthewcadorette/git/ticketing/deploy/terraform/aws
+      args:
+        cloud: AWS
+        tfvars:
+          datalayer_instances: 2
+          vpc_id: !lookup /sharedeks/sharedeks/outputs/vpc_id
+          subnet_id1: !lookup /sharedeks/sharedeks/outputs/public_subnet_id,0
+          subnet_id2: !lookup /sharedeks/sharedeks/outputs/public_subnet_id,1
+          region: !lookup /sharedeks/sharedeks/outputs/region
+        outputs:
+          - datalayer-url
+          - datalayer-port
+          - mongodb_ip
+          - mongodb_private_ip
+          - ips
+          - private_ips
+          - pem
+          - utility_vpc_id
+          - utility_vpc_subnet_id1
+          - utility_vpc_subnet_id2
+          - utility_ip
+    - name: mongodb-setup
+      extension: Ansible
+      source: /Users/matthewcadorette/git/ticketing/deploy/ansible
+      tags: application
+      needs:
+        - instances
+      helpers:
+        - helper: ServiceAvailable # Ensure deployed ec2 instance is running and available on port 22
+          args:
+            hostname: !lookup /instances/outputs/mongodb_ip
+            port: 22
+        - helper: WriteValue # Write out the pem file created for ec2 instance
+          run_on_dryrun: true
+          args:
+            raw_value: !lookupSecret /instances/outputs/pem
+            dstfile: instance.pem
+            mode: 0600
+        - helper: GenerateOutput
+          run_on_dryrun: true
+          args:
+            dst: mongodb_conn_string
+            format: "mongodb://{{ .inventory_private }}:27017/tickets"
+      args:
+        inventory: !lookup /instances/outputs/mongodb_ip
+        inventory_private: !lookup /instances/outputs/mongodb_private_ip
+        private_key: instance.pem
+        galaxy:
+          roles:
+            - undergreen.mongodb
+        user: "ubuntu"
+        playbook: mongodb.yml
+        privilege_escalation:
+          become: true
+        extra_vars:
+          mongodb_db: tickets
+          mongodb_user: tickets
+          mongodb_pass: tickets
+          lw_access_token: !secret lacework.access_token
+    - name: datalayer-app
+      extension: Ansible
+      source: /Users/matthewcadorette/git/ticketing/deploy/ansible
+      tags: application
+      needs:
+        - instances
+        - mongodb-setup
+      helpers:
+        - helper: ServiceAvailable # Ensure deployed ec2 instance is running and available on port 22
+          args:
+            hostname: !lookup /instances/outputs/ips
+            port: 22
+        - helper: WriteValue # Write out the pem file created for ec2 instance
+          run_on_dryrun: true
+          args:
+            raw_value: !lookupSecret /instances/outputs/pem
+            dstfile: instance.pem
+            mode: 0600
+        # - NEED DETC-153
+      args:
+        inventory: !lookup /instances/outputs/ips
+        private_key: instance.pem
+        galaxy:
+          roles:
+            - geerlingguy.nodejs
+            - weareinteractive.pm2
+        user: "ubuntu"
+        playbook: nodeapp.yml
+        privilege_escalation:
+          become: true
+        extra_vars:
+          datalayer_port: 8889
+          mongodb_conn_string: !lookup /mongodb-setup/outputs/mongodb_conn_string
+          mongodb_user: tickets
+          mongodb_pass: tickets
+          lw_access_token: !secret lacework.access_token
+
+    - name: frontend-k8s
+      extension: Kubectl
+      needs:
+        - datalayer-app
+      helpers:
+        - helper: WriteValue
+          run_on_dryrun: true
+          args:
+            name: kubectl_config
+            dstfile: kubectl
+      source:
+        location: /Users/matthewcadorette/git/ticketing/deploy/k8s/frontend.yml
+        templates:
+          - "frontend.yml"
+      args:
+        control_plane_url: !lookup /sharedeks/sharedeks/outputs/cluster_endpoint
+        kubectl_config: !lookupSecret /sharedeks/sharedeks/outputs/kubectl_config
+        kubectl_config_file: kubectl
+        kube_manifest_path: frontend.yml
+        replicas: 2
+        datalayer_backend: "http://internal-ticketing-alb-1392201876.us-east-2.elb.amazonaws.com:8080"
+        cidr_block: !lookup /instances/outputs/utility_ip
+        wait_for:
+           ticketing_app_url:
+              app_name: "ticketing-frontend"
+              field: "load_balancer_ip"
+
+    - name: setup-utility-curl
+      extension: Ansible
+      source: /Users/matthewcadorette/git/ticketing/deploy/ansible
+      tags: application
+      needs:
+        - frontend-k8s
+      helpers:
+        - helper: ServiceAvailable # Ensure deployed ec2 instance is running and available on port 22
+          args:
+            hostname: !lookup /instances/outputs/utility_ip
+            port: 22
+        - helper: WriteValue # Write out the pem file created for ec2 instance
+          run_on_dryrun: true
+          args:
+            raw_value: !lookupSecret /instances/outputs/pem
+            dstfile: instance.pem
+            mode: 0600
+      args:
+        inventory: !lookup /instances/outputs/utility_ip
+        private_key: instance.pem
+        user: "ubuntu"
+        playbook: curl_it.yml
+        extra_vars:
+          url: !lookup /frontend-k8s/outputs/ticketing-frontend
+        privilege_escalation:
+          become: true

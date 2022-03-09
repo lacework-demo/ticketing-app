@@ -1,0 +1,10 @@
+FROM node:16
+WORKDIR /usr/src/app
+RUN npm install -g serve
+
+COPY frontend.tgz .
+RUN tar zxvf frontend.tgz
+ENV PORT=8888
+ENV BACKEND=http://localhost:8889
+EXPOSE ${PORT}
+CMD ["node", "server.js"]

@@ -1,0 +1,46 @@
+- hosts: all
+  tasks:
+    - name: Update apt repo and cache on all Debian/Ubuntu boxes
+      apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+      become: true
+
+- hosts: all
+  roles:
+    - undergreen.mongodb
+  vars:
+    mongodb_net_http_enabled: true
+    mongodb_net_bindip: 0.0.0.0
+    mongodb_security_authorization: "enabled"
+    mongodb_users:
+      - {
+          name: "{{ mongodb_user }}",
+          password: "{{ mongodb_pass }}",
+          roles: readWrite,
+          database: "{{ mongodb_db }}"
+        }
+
+- hosts: all
+  become: yes
+  tasks:
+  - name: add apt signing key
+    apt_key:
+      keyserver: hkp://keyserver.ubuntu.com:80
+      id: EE0CC692
+      state: present
+  - name: add lacework repository into source list
+    apt_repository:
+      repo: "deb [arch=amd64] https://packages.lacework.net/latest/DEB/{{ ansible_distribution | lower  }} {{ ansible_distribution_release }} main"
+      filename: lacework
+      state: present
+      update_cache: yes
+  - name: install lacework datacollector
+    apt:
+      name: lacework
+      state: latest
+  - name: wait until /var/lib/lacework/config/ is created
+    wait_for:
+      path: /var/lib/lacework/config/
+  - name: write config.json
+    template:
+      src: config.j2
+      dest: /var/lib/lacework/config/config.json

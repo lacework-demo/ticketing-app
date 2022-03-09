@@ -1,0 +1,45 @@
+version: "3.9"
+    
+services:
+  frontend:
+    build: 
+      context: artifacts
+      dockerfile: ../docker/Dockerfile_frontend
+    restart: always
+    environment:
+      BACKEND: http://datalayer:9000
+    ports:
+      - "8888:8888"
+
+  datalayer:
+    build: 
+      context: artifacts
+      dockerfile: ../docker/Dockerfile_datalayer
+    ports:
+      - "9000:9000"
+    restart: always
+    environment:
+      PORT: 9000
+      MONGODB_PASS: tickets
+      MONGODB_USER: tickets
+      MONGODB_CONN_STRING: "mongodb://mongodb:27017/tickets"
+
+  mongodb:
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./scripts/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
+      - type: volume
+        source: mongodata
+        target: /data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongoadmin
+      MONGO_INITDB_ROOT_PASSWORD: secret
+      MONGO_INITDB_USERNAME: tickets
+      MONGO_INITDB_PASSWORD: tickets
+      MONGO_INITDB_DATABASE: tickets
+
+volumes:
+  mongodata:

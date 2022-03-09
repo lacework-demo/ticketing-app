@@ -1,0 +1,9 @@
+FROM node:16
+WORKDIR /usr/src/app
+
+COPY datalayer.tgz .
+RUN tar zxvf datalayer.tgz
+
+ENV PORT=8889
+EXPOSE ${PORT}
+ENTRYPOINT ["node", "index.js"]

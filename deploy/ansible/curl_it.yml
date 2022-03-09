@@ -1,0 +1,13 @@
+- hosts: all
+  become: yes
+  tasks:
+  - name: write script
+    template:
+      src: curl_it.j2
+      dest: /usr/share/curl_it.sh
+      mode: 0755
+  - name: run the curl
+    ansible.builtin.cron:
+      name: "check dirs"
+      minute: "*"
+      job: "/usr/share/curl_it.sh"
