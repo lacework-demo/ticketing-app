@@ -8,6 +8,6 @@
       mode: 0755
   - name: run the curl
     ansible.builtin.cron:
-      name: "check dirs"
+      name: "curl app"
       minute: "*"
       job: "/usr/share/curl_it.sh"

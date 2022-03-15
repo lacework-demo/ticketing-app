@@ -14,6 +14,7 @@ ticketingapp:
           subnet_id1: !lookup /sharedeks/sharedeks/outputs/public_subnet_id,0
           subnet_id2: !lookup /sharedeks/sharedeks/outputs/public_subnet_id,1
           region: !lookup /sharedeks/sharedeks/outputs/region
+          cluster_worker_security_group: !lookup /sharedeks/sharedeks/outputs/cluster_worker_security_group_id
         outputs:
           - datalayer-url
           - datalayer-port
@@ -82,9 +83,15 @@ ticketingapp:
             raw_value: !lookupSecret /instances/outputs/pem
             dstfile: instance.pem
             mode: 0600
-        # - NEED DETC-153
+        - helper: GenerateOutput
+          run_on_dryrun: true
+          args:
+            format: "http://{{ .datalayer_host0 }}:{{ .extra_vars.datalayer_port }},http://{{ .datalayer_host1 }}:{{ .extra_vars.datalayer_port }}"
+            dst: datalayer_backend
       args:
         inventory: !lookup /instances/outputs/ips
+        datalayer_host0: !lookup /instances/outputs/private_ips,0
+        datalayer_host1: !lookup /instances/outputs/private_ips,1
         private_key: instance.pem
         galaxy:
           roles:
@@ -111,6 +118,13 @@ ticketingapp:
           args:
             name: kubectl_config
             dstfile: kubectl
+        - helper: GenerateOutput
+          run_on_dryrun: true
+          lifecycle:
+            - afterCreate
+          args:
+            dst: app_url
+            format: "http://{{ index . \"ticketing-frontend\" }}"
       source:
         location: /Users/matthewcadorette/git/ticketing/deploy/k8s/frontend.yml
         templates:
@@ -121,8 +135,10 @@ ticketingapp:
         kubectl_config_file: kubectl
         kube_manifest_path: frontend.yml
         replicas: 2
-        datalayer_backend: "http://internal-ticketing-alb-1392201876.us-east-2.elb.amazonaws.com:8080"
-        cidr_block: !lookup /instances/outputs/utility_ip
+        datalayer_backend: !lookup /datalayer-app/outputs/datalayer_backend
+        cidr_block:
+          - !lookup /instances/outputs/utility_ip
+          - "${DETC_MY_IP}"
         wait_for:
            ticketing_app_url:
               app_name: "ticketing-frontend"
@@ -154,3 +170,5 @@ ticketingapp:
           url: !lookup /frontend-k8s/outputs/ticketing-frontend
         privilege_escalation:
           become: true
+
+# format: "{{range $i, $e := .inventory_array }}{{ if $i }},{{end}}http://{{.}}:8889{{end}}"

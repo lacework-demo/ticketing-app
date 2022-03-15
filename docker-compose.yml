@@ -7,16 +7,17 @@ services:
       dockerfile: ../docker/Dockerfile_frontend
     restart: always
     environment:
-      BACKEND: http://datalayer:9000
+      BACKEND: datalayer0
+      BACKEND_PORT: 9000
     ports:
       - "8888:8888"
 
-  datalayer:
+  datalayer0:
     build: 
       context: artifacts
       dockerfile: ../docker/Dockerfile_datalayer
     ports:
-      - "9000:9000"
+      - "9001:9001"
     restart: always
     environment:
       PORT: 9000

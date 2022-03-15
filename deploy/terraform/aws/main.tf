@@ -6,10 +6,12 @@ variable "datalayer_port" {
   default = 8889
 }
 
+# variable "k8s_worker_sg" {}
 variable "vpc_id" {}
 variable "subnet_id1" {}
 variable "subnet_id2" {}
 variable "region" {}
+variable "cluster_worker_security_group" {}
 
 provider "aws" {
   region = var.region
@@ -36,13 +38,31 @@ resource "aws_security_group_rule" "ticketing-intra-app-traffic-mongodb-sg" {
 }
 
 resource "aws_security_group_rule" "ticketing-intra-app-traffic-datalayer-sg" {
-  type                     = "ingress"
+  type              = "ingress"
+  from_port         = var.datalayer_port
+  to_port           = var.datalayer_port
+  protocol          = "tcp"
+  cidr_blocks       = ["10.0.0.0/16"]
+  security_group_id = aws_security_group.ticketing-intra-app-traffic.id
+}
+
+resource "aws_security_group_rule" "traffic-to-from-k8s-worker-security-group" {
+  type                     = "egress"
   from_port                = var.datalayer_port
   to_port                  = var.datalayer_port
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.ticketing-intra-app-traffic.id
-  security_group_id        = aws_security_group.ticketing-intra-app-traffic.id
+  security_group_id        = var.cluster_worker_security_group
 }
+
+# resource "aws_security_group_rule" "ticketing-intra-app-traffic-datalayer-sg-from-k8s" {
+#   type                     = "ingress"
+#   from_port                = var.datalayer_port
+#   to_port                  = var.datalayer_port
+#   protocol                 = "tcp"
+#   source_security_group_id = var.k8s_worker_sg
+#   security_group_id        = aws_security_group.ticketing-intra-app-traffic.id
+# }
 
 resource "aws_security_group_rule" "ticketing-intra-app-traffic-datalayer-sg-egress" {
   type                     = "egress"
