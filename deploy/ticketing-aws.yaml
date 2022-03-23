@@ -5,7 +5,9 @@ ticketingapp:
   steps:
     - name: instances
       extension: Terraform
-      source: /Users/matthewcadorette/git/ticketing/deploy/terraform/aws
+      source:
+        location: "git+https://github.com/lacework-demo/ticketing-app.git"
+        subdir: "deploy/terraform/aws"
       args:
         cloud: AWS
         tfvars:
@@ -29,7 +31,9 @@ ticketingapp:
           - utility_ip
     - name: mongodb-setup
       extension: Ansible
-      source: /Users/matthewcadorette/git/ticketing/deploy/ansible
+      source:
+        location: "git+https://github.com/lacework-demo/ticketing-app.git"
+        subdir: "deploy/ansible"
       tags: application
       needs:
         - instances
@@ -67,7 +71,9 @@ ticketingapp:
           lw_access_token: !secret lacework.access_token
     - name: datalayer-app
       extension: Ansible
-      source: /Users/matthewcadorette/git/ticketing/deploy/ansible
+      source:
+        location: "git+https://github.com/lacework-demo/ticketing-app.git"
+        subdir: "deploy/ansible"
       tags: application
       needs:
         - instances
@@ -126,7 +132,7 @@ ticketingapp:
             dst: app_url
             format: "http://{{ index . \"ticketing-frontend\" }}"
       source:
-        location: /Users/matthewcadorette/git/ticketing/deploy/k8s/frontend.yml
+        location: "https://raw.githubusercontent.com/lacework-demo/ticketing-app/main/deploy/k8s/frontend.yml"
         templates:
           - "frontend.yml"
       args:
@@ -146,7 +152,9 @@ ticketingapp:
 
     - name: setup-utility-curl
       extension: Ansible
-      source: /Users/matthewcadorette/git/ticketing/deploy/ansible
+      source:
+        location: "git+https://github.com/lacework-demo/ticketing-app.git"
+        subdir: "deploy/ansible"
       tags: application
       needs:
         - frontend-k8s
