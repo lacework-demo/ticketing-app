@@ -1,7 +1,7 @@
 ---
 ticketingapp:
   needs:
-    - sharedeks
+    - kubernetes
   steps:
     - name: instances
       extension: Terraform
@@ -12,11 +12,11 @@ ticketingapp:
         cloud: AWS
         tfvars:
           datalayer_instances: 2
-          vpc_id: !lookup /sharedeks/sharedeks/outputs/vpc_id
-          subnet_id1: !lookup /sharedeks/sharedeks/outputs/public_subnet_id,0
-          subnet_id2: !lookup /sharedeks/sharedeks/outputs/public_subnet_id,1
-          region: !lookup /sharedeks/sharedeks/outputs/region
-          cluster_worker_security_group: !lookup /sharedeks/sharedeks/outputs/cluster_worker_security_group_id
+          vpc_id: !lookup /kubernetes/k8s/outputs/vpc_id
+          subnet_id1: !lookup /kubernetes/k8s/outputs/public_subnet_id,0
+          subnet_id2: !lookup /kubernetes/k8s/outputs/public_subnet_id,1
+          region: !lookup /kubernetes/k8s/outputs/region
+          cluster_worker_security_group: !lookup /kubernetes/k8s/outputs/cluster_worker_security_group_id
         outputs:
           - datalayer-url
           - datalayer-port
@@ -136,8 +136,8 @@ ticketingapp:
         templates:
           - "frontend.yml"
       args:
-        control_plane_url: !lookup /sharedeks/sharedeks/outputs/cluster_endpoint
-        kubectl_config: !lookupSecret /sharedeks/sharedeks/outputs/kubectl_config
+        control_plane_url: !lookup /kubernetes/k8s/outputs/cluster_endpoint
+        kubectl_config: !lookupSecret /kubernetes/k8s/outputs/kubectl_config
         kubectl_config_file: kubectl
         kube_manifest_path: frontend.yml
         replicas: 2
