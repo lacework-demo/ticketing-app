@@ -146,9 +146,10 @@ ticketingapp:
           - !lookup /instances/outputs/utility_ip
           - "${DETC_MY_IP}"
         wait_for:
-           ticketing_app_url:
-              app_name: "ticketing-frontend"
-              field: "load_balancer_ip"
+          ticketing-frontend:
+            resource_type: svc
+            resource_name: ticketing-frontend
+            json_path: "{.status.loadBalancer.ingress[0].hostname}"
 
     - name: setup-utility-curl
       extension: Ansible

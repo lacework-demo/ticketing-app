@@ -12,9 +12,10 @@
       file: path=/usr/local/src/app state=directory
 
     - name: Copy source file
-      copy:
-        src: /Users/matthewcadorette/git/ticketing/artifacts/datalayer.tgz
+      get_url:
+        url: https://github.com/lacework-demo/ticketing-app/releases/download/latest/datalayer.tgz
         dest: /usr/local/src/app/app.tgz
+        mode: '0440'
 
     - name: Extract archive
       ansible.builtin.unarchive:

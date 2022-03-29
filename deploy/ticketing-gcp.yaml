@@ -142,9 +142,10 @@ ticketingapp:
         datalayer_backend: !lookup /datalayer-app/outputs/datalayer_backend
         cluster_name: !lookup /kubernetes/k8s/outputs/cluster_name
         wait_for:
-           ticketing_app_url:
-              app_name: "ticketing-frontend"
-              field: "load_balancer_ip"
+           ticketing-frontend:
+             resource_type: svc
+             resource_name: ticketing-frontend
+             json_path: "{.status.loadBalancer.ingress[0].ip}"
 
     - name: setup-utility-curl
       extension: Ansible
