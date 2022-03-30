@@ -1,7 +1,7 @@
 ---
 ticketingapp:
   needs:
-    - kubernetes
+    - gcp-k8s
   steps:
     - name: instances
       extension: Terraform
@@ -12,8 +12,8 @@ ticketingapp:
         cloud: GCP
         tfvars:
           datalayer_instances: 2
-          network: !lookup /kubernetes/k8s/outputs/network
-          subnet: !lookup /kubernetes/k8s/outputs/subnet
+          network: !lookup /gcp-k8s/k8s/outputs/network
+          subnet: !lookup /gcp-k8s/k8s/outputs/subnet
           region: !secret gcp.region
           project: !secret gcp.project_id
         outputs:
@@ -134,13 +134,13 @@ ticketingapp:
         cidr_block:
           - !lookup /instances/outputs/utility_ip
           - "${DETC_MY_IP}"
-        control_plane_url: !lookup /kubernetes/k8s/outputs/cluster_endpoint
-        kubectl_config: !lookupSecret /kubernetes/k8s/outputs/kubectl_config
+        control_plane_url: !lookup /gcp-k8s/k8s/outputs/cluster_endpoint
+        kubectl_config: !lookupSecret /gcp-k8s/k8s/outputs/kubectl_config
         kubectl_config_file: kubectl
         kube_manifest_path: frontend.yml
         replicas: 2
         datalayer_backend: !lookup /datalayer-app/outputs/datalayer_backend
-        cluster_name: !lookup /kubernetes/k8s/outputs/cluster_name
+        cluster_name: !lookup /gcp-k8s/k8s/outputs/cluster_name
         wait_for:
            ticketing-frontend:
              resource_type: svc
