@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: ticketing-frontend
-        image: ipcrm/ticketing-frontend
+        image: detcaccounts/ticketing-frontend
         imagePullPolicy: Always
         env:
         - name: PORT
