@@ -8,7 +8,7 @@ variable "datalayer_instances" {
 }
 
 variable "datalayer_port" {
-  default = 8889
+  default = 8999
 }
 
 terraform {
@@ -51,8 +51,8 @@ resource "google_compute_firewall" "enable-ssh-all" {
   source_ranges = toset(["0.0.0.0/0"])
 }
 
-resource "google_compute_firewall" "enable-intra-8889-all" {
-  name    = "ticketing-firewall-8889-internal"
+resource "google_compute_firewall" "enable-intra-8999-all" {
+  name    = "ticketing-firewall-8999-internal"
   network = var.network
 
   allow {

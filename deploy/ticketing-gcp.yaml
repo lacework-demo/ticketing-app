@@ -107,7 +107,7 @@ ticketingapp:
         privilege_escalation:
           become: true
         extra_vars:
-          datalayer_port: 8889
+          datalayer_port: 8999
           mongodb_conn_string: !lookup /mongodb-setup/outputs/mongodb_conn_string
           mongodb_user: tickets
           mongodb_pass: tickets

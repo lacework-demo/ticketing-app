@@ -3,7 +3,7 @@ variable "datalayer_instances" {
 }
 
 variable "datalayer_port" {
-  default = 8889
+  default = 8999
 }
 
 # variable "k8s_worker_sg" {}

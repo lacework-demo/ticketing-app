@@ -36,7 +36,7 @@
          args: --name app
          path: /usr/local/src/app
          env:
-          PORT: "{{ tickets_port }}"
+          PORT: "{{ datalayer_port }}"
           MONGODB_CONN_STRING: "{{ mongodb_conn_string }}"
           MONGODB_USER: "{{ mongodb_user }}"
           MONGODB_PASS: "{{ mongodb_pass }}"
