@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euio pipefail
+set -eu
 
 if [ ! -d frontend ]; then
     echo "must run from root of repository"

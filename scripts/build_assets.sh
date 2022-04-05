@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euio pipefail
+set -eu
 
 if [ ! -d assets ]; then
     echo "must run from root of repository"
@@ -10,7 +10,7 @@ source ./scripts/shared.sh
 
 # build
 log "running assets build"
-(cd contacts && npm ci && npm run build)
+(cd assets && npm ci && npm run build)
 log "complete"
 
 # create archive

@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euio pipefail
+set -eu
 
 if [ ! -d assets ]; then
     echo "must run from root of repository"
@@ -10,8 +10,8 @@ source ./scripts/shared.sh
 
 # build
 log "running all builds"
-sh ./scripts/build_contacts.sh
-sh ./scripts/build_assets.sh
-sh ./scripts/build_tickets.sh
-sh ./scripts/build_frontend.sh
+./scripts/build_contacts.sh
+./scripts/build_assets.sh
+./scripts/build_tickets.sh
+./scripts/build_frontend.sh
 log "complete all builds"
