@@ -1,0 +1,9 @@
+FROM node:16
+WORKDIR /usr/src/app
+
+COPY assets.tgz .
+RUN tar zxvf assets.tgz
+
+ENV PORT=9000
+EXPOSE ${PORT}
+ENTRYPOINT ["node", "index.js"]

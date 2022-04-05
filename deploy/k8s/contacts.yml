@@ -1,0 +1,48 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ticketing-contacts
+  labels:
+    app: ticketing-contacts
+spec:
+  replicas: {{ .replicas }}
+  selector:
+    matchLabels:
+      app: ticketing-contacts
+  template:
+    metadata:
+      labels:
+        app: ticketing-contacts
+    spec:
+      containers:
+      - name: ticketing-contacts
+        image: detcaccounts/ticketing-contacts
+        imagePullPolicy: Always
+        env:
+        - name: PORT
+          value: "9001"
+        - name: MONGODB_CONN_STRING
+          value: "{{ mongodb_conn_string }}"
+        - name: MONGODB_USER
+          value: "{{ mongodb_user }}"
+        - name: MONGODB_PASS
+          value: "{{ mongodb_pass }}"
+        ports:
+        - containerPort: 9001
+          name: ticketing-cn
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ticketing_contacts
+  labels:
+    apps: ticketing-contacts
+spec:
+  selector:
+    app: ticketing-contacts
+  ports:
+    - name: ticketing-contacts
+      port: 9001
+      protocol: TCP
+      targetPort: 9001

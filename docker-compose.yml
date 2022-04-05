@@ -6,21 +6,58 @@ services:
       context: artifacts
       dockerfile: ../docker/Dockerfile_frontend
     restart: always
+    depends_on:
+      - assets
+      - contacts
+      - tickets0
     environment:
-      BACKEND: datalayer0
-      BACKEND_PORT: 9000
+      BACKEND: "http://tickets0:8999"
+      CONTACTS: "http://contacts:9001"
+      ASSETS: "http://assets:9000"
     ports:
       - "8888:8888"
 
-  datalayer0:
+  assets:
     build: 
       context: artifacts
-      dockerfile: ../docker/Dockerfile_datalayer
+      dockerfile: ../docker/Dockerfile_assets
     ports:
-      - "9001:9001"
+      - "9000:9000"
+    depends_on:
+      - mongodb
     restart: always
     environment:
       PORT: 9000
+      MONGODB_PASS: tickets
+      MONGODB_USER: tickets
+      MONGODB_CONN_STRING: "mongodb://mongodb:27017/tickets"
+
+  contacts:
+    build: 
+      context: artifacts
+      dockerfile: ../docker/Dockerfile_contacts
+    ports:
+      - "9001:9001"
+    depends_on:
+      - mongodb
+    restart: always
+    environment:
+      PORT: 9001
+      MONGODB_PASS: tickets
+      MONGODB_USER: tickets
+      MONGODB_CONN_STRING: "mongodb://mongodb:27017/tickets"
+
+  tickets0:
+    build: 
+      context: artifacts
+      dockerfile: ../docker/Dockerfile_tickets
+    ports:
+      - "8999:8999"
+    depends_on:
+      - mongodb
+    restart: always
+    environment:
+      PORT: 8999
       MONGODB_PASS: tickets
       MONGODB_USER: tickets
       MONGODB_CONN_STRING: "mongodb://mongodb:27017/tickets"

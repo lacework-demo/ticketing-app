@@ -2,22 +2,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ticketing-frontend
+  name: ticketing-bff
   labels:
-    app: ticketing-frontend
+    app: ticketing-bff
 spec:
   replicas: {{ .replicas }}
   selector:
     matchLabels:
-      app: ticketing-frontend
+      app: ticketing-bff
   template:
     metadata:
       labels:
-        app: ticketing-frontend
+        app: ticketing-bff
     spec:
       containers:
-      - name: ticketing-frontend
-        image: detcaccounts/ticketing-frontend
+      - name: ticketing-bff
+        image: detcaccounts/ticketing-bff
         imagePullPolicy: Always
         env:
         - name: PORT
@@ -31,9 +31,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ticketing-frontend
+  name: ticketing-bff
   labels:
-    apps: ticketing-frontend
+    apps: ticketing-bff
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
     service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
@@ -42,10 +42,10 @@ spec:
   type: LoadBalancer
   externalTrafficPolicy: Local
   ports:
-    - name: ticketing-frontend
+    - name: ticketing-bff
       port: 80
       protocol: TCP
       targetPort: 8080
   selector:
-    app: ticketing-frontend
+    app: ticketing-bff
   loadBalancerSourceRanges: [ {{range  $i, $e := .cidr_block }}{{if ne . ""}}{{if $i}},{{end}}{{$e}}/32{{end}}{{end}} ]

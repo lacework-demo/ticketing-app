@@ -13,7 +13,7 @@
 
     - name: Copy source file
       get_url:
-        url: https://github.com/lacework-demo/ticketing-app/releases/download/latest/datalayer.tgz
+        url: https://github.com/lacework-demo/ticketing-app/releases/download/latest/tickets.tgz
         dest: /usr/local/src/app/app.tgz
         mode: '0440'
 
@@ -36,7 +36,7 @@
          args: --name app
          path: /usr/local/src/app
          env:
-          PORT: "{{ datalayer_port }}"
+          PORT: "{{ tickets_port }}"
           MONGODB_CONN_STRING: "{{ mongodb_conn_string }}"
           MONGODB_USER: "{{ mongodb_user }}"
           MONGODB_PASS: "{{ mongodb_pass }}"
