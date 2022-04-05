@@ -113,7 +113,7 @@ ticketingapp:
           mongodb_pass: tickets
           lw_access_token: !secret lacework.access_token
 
-    - name: frontend-k8s
+    - name: services-k8s
       extension: Kubectl
       needs:
         - datalayer-app
@@ -127,9 +127,41 @@ ticketingapp:
             dst: app_url
             format: "http://{{ index . \"ticketing-frontend\" }}"
       source:
-        location: "https://raw.githubusercontent.com/lacework-demo/ticketing-app/main/deploy/k8s/frontend.yml"
+        location: "git+https://github.com/lacework-demo/ticketing-app.git"
+        subdir: "deploy/k8s/services"
         templates:
-          - "frontend.yml"
+          - assets.yml
+          - contacts.yml
+      args:
+        control_plane_url: !lookup /gcp-k8s/k8s/outputs/cluster_endpoint
+        kubectl_config: !lookupSecret /gcp-k8s/k8s/outputs/kubectl_config
+        kubectl_config_file: kubectl
+        kube_manifest_path: "."
+        mongodb_conn_string: !lookup /mongodb-setup/outputs/mongodb_conn_string
+        mongodb_user: tickets
+        mongodb_pass: tickets
+        datalayer_backend: !lookup /datalayer-app/outputs/datalayer_backend
+        cluster_name: !lookup /gcp-k8s/k8s/outputs/cluster_name
+
+    - name: frontend-k8s
+      extension: Kubectl
+      needs:
+        - datalayer-app
+        - services-k8s
+      helpers:
+        - helper: GKEKubectl
+        - helper: GenerateOutput
+          run_on_dryrun: true
+          lifecycle:
+            - afterCreate
+          args:
+            dst: app_url
+            format: "http://{{ index . \"ticketing-frontend\" }}"
+      source:
+        location: "git+https://github.com/lacework-demo/ticketing-app.git"
+        subdir: "deploy/k8s/frontend"
+        templates:
+          - frontend.yml
       args:
         cidr_block:
           - !lookup /instances/outputs/utility_ip
@@ -137,14 +169,14 @@ ticketingapp:
         control_plane_url: !lookup /gcp-k8s/k8s/outputs/cluster_endpoint
         kubectl_config: !lookupSecret /gcp-k8s/k8s/outputs/kubectl_config
         kubectl_config_file: kubectl
-        kube_manifest_path: frontend.yml
+        kube_manifest_path: "."
         replicas: 2
         datalayer_backend: !lookup /datalayer-app/outputs/datalayer_backend
         cluster_name: !lookup /gcp-k8s/k8s/outputs/cluster_name
         wait_for:
            ticketing-frontend:
              resource_type: svc
-             resource_name: ticketing-frontend
+             resource_name: ticketing-bff
              json_path: "{.status.loadBalancer.ingress[0].ip}"
 
     - name: setup-utility-curl

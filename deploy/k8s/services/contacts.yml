@@ -6,7 +6,7 @@ metadata:
   labels:
     app: ticketing-contacts
 spec:
-  replicas: {{ .replicas }}
+  replicas: 1
   selector:
     matchLabels:
       app: ticketing-contacts
@@ -23,11 +23,11 @@ spec:
         - name: PORT
           value: "9001"
         - name: MONGODB_CONN_STRING
-          value: "{{ mongodb_conn_string }}"
+          value: "{{ .mongodb_conn_string }}"
         - name: MONGODB_USER
-          value: "{{ mongodb_user }}"
+          value: "{{ .mongodb_user }}"
         - name: MONGODB_PASS
-          value: "{{ mongodb_pass }}"
+          value: "{{ .mongodb_pass }}"
         ports:
         - containerPort: 9001
           name: ticketing-cn
@@ -35,7 +35,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ticketing_contacts
+  name: ticketing-contacts
   labels:
     apps: ticketing-contacts
 spec:
