@@ -17,8 +17,7 @@ docker-compose up
 From the root of the project, run:
 
 ```
-./scripts/build_datalayer.sh
-./scripts/build_frontend.sh
+./scripts/build_all.sh
 ```
 
 ## Deployment
