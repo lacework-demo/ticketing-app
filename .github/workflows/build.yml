@@ -12,18 +12,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: build frontend
-        run: ./scripts/build_frontend.sh
-
-      - name: build datalayer
-        run: ./scripts/build_datalayer.sh
+      - name: build all
+        run: ./scripts/build_all.sh
 
       - uses: actions/upload-artifact@v2
         with:
           name: build-artifacts
           path: ./artifacts
 
-  docker:
+  contacts:
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -53,33 +50,146 @@ jobs:
       - name: move artifacts
         run: mv ./*.tgz artifacts/
 
-      - name: Build and export to Docker
+      - name: Build contacts and export to Docker
+        uses: docker/build-push-action@v2
+        with:
+          file: docker/Dockerfile_contacts
+          context: artifacts
+          load: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-contacts:latest
+
+      - uses: lacework/lw-scanner-action@v0.6.0
+        name: Scan contacts container image for vulnerabitilies using Lacework
+        with:
+          USE_POLICY: true
+          LW_ACCOUNT_NAME: ${{ secrets.LW_ACCOUNT_NAME }} 
+          LW_ACCESS_TOKEN: ${{ secrets.LW_ACCESS_TOKEN }}
+          IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-contacts
+          IMAGE_TAG: latest
+
+      - name: Build and push contacts
+        uses: docker/build-push-action@v2
+        with:
+          file: docker/Dockerfile_contacts
+          context: artifacts
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-contacts:latest
+
+  frontend:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Download a single artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts
+
+      - name: mkdir artifacts
+        run: mkdir artifacts
+
+      - name: move artifacts
+        run: mv ./*.tgz artifacts/
+
+      - name: Build frontend and export to Docker
         uses: docker/build-push-action@v2
         with:
           file: docker/Dockerfile_frontend
           context: artifacts
           load: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-frontend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-bff:latest
 
       - uses: lacework/lw-scanner-action@v0.6.0
-        name: Scan container images for vulnerabitilies using Lacework
+        name: Scan frontend container image for vulnerabitilies using Lacework
         with:
           USE_POLICY: true
           LW_ACCOUNT_NAME: ${{ secrets.LW_ACCOUNT_NAME }} 
           LW_ACCESS_TOKEN: ${{ secrets.LW_ACCESS_TOKEN }}
-          IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-frontend
+          IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-bff
           IMAGE_TAG: latest
 
-      - name: Build and push
+      - name: Build and push frontend
         uses: docker/build-push-action@v2
         with:
           file: docker/Dockerfile_frontend
           context: artifacts
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-frontend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-bff:latest
+
+  assets:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Download a single artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts
+
+      - name: mkdir artifacts
+        run: mkdir artifacts
+
+      - name: move artifacts
+        run: mv ./*.tgz artifacts/
+
+      - name: Build assets and export to Docker
+        uses: docker/build-push-action@v2
+        with:
+          file: docker/Dockerfile_assets
+          context: artifacts
+          load: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-assets:latest
+
+      - uses: lacework/lw-scanner-action@v0.6.0
+        name: Scan assets container image for vulnerabitilies using Lacework
+        with:
+          USE_POLICY: true
+          LW_ACCOUNT_NAME: ${{ secrets.LW_ACCOUNT_NAME }} 
+          LW_ACCESS_TOKEN: ${{ secrets.LW_ACCESS_TOKEN }}
+          IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-assets
+          IMAGE_TAG: latest
+
+      - name: Build and push assets
+        uses: docker/build-push-action@v2
+        with:
+          file: docker/Dockerfile_assets
+          context: artifacts
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-assets:latest
 
   release:
-    needs: docker
+    needs:
+      - frontend
+      - assets
+      - contacts
     runs-on: ubuntu-latest
     steps:
       - name: Download a single artifact

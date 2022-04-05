@@ -1,9 +1,9 @@
 FROM node:16
 WORKDIR /usr/src/app
 
-COPY datalayer.tgz .
-RUN tar zxvf datalayer.tgz
+COPY contacts.tgz .
+RUN tar zxvf contacts.tgz
 
-ENV PORT=8889
+ENV PORT=9001
 EXPOSE ${PORT}
 ENTRYPOINT ["node", "index.js"]

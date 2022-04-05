@@ -1,0 +1,48 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ticketing-assets
+  labels:
+    app: ticketing-assets
+spec:
+  replicas: {{ .replicas }}
+  selector:
+    matchLabels:
+      app: ticketing-assets
+  template:
+    metadata:
+      labels:
+        app: ticketing-assets
+    spec:
+      containers:
+      - name: ticketing-assets
+        image: detcaccounts/ticketing-assets
+        imagePullPolicy: Always
+        env:
+        - name: PORT
+          value: "9000"
+        - name: MONGODB_CONN_STRING
+          value: "{{ mongodb_conn_string }}"
+        - name: MONGODB_USER
+          value: "{{ mongodb_user }}"
+        - name: MONGODB_PASS
+          value: "{{ mongodb_pass }}"
+        ports:
+        - containerPort: 9000
+          name: ticketing-as
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ticketing_assets
+  labels:
+    apps: ticketing-assets
+spec:
+  selector:
+    app: ticketing-assets
+  ports:
+    - name: ticketing-assets
+      port: 9000
+      protocol: TCP
+      targetPort: 9000

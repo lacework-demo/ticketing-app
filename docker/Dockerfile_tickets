@@ -1,0 +1,9 @@
+FROM node:16
+WORKDIR /usr/src/app
+
+COPY tickets.tgz .
+RUN tar zxvf tickets.tgz
+
+ENV PORT=8999
+EXPOSE ${PORT}
+ENTRYPOINT ["node", "index.js"]

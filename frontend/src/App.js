@@ -120,12 +120,21 @@ const CreateTicket = ({handleClose, setLoading}) => {
   const [subject, setSubject] = React.useState("");
   const [body, setBody] = React.useState("");
   const [metadata, setMetadata] = React.useState("");
+  const [contact, setContact] = React.useState("");
+  const [asset, setAsset] = React.useState("");
   const onTextChange = e => setSubject(e.target.value);
   const onBodyChange = e => setBody(e.target.value);
   const onMetadataChange = e => setMetadata(e.target.value)
-  const setTicketListing = useSetRecoilState(ticketListing)
+  const onContactChange = e => setContact(e.target.value)
+  const onAssetChange = e => setAsset(e.target.value)
 
-  const useSubmitForm = () => {
+  const setTicketListing = useSetRecoilState(ticketListing)
+  const sleep = (milliseconds) => {
+      return new Promise(resolve => setTimeout(resolve, milliseconds))
+  }
+
+
+  const useSubmitForm = async () => {
     setLoading(true)
     handleClose()
     fetch(`/tickets`,
@@ -133,11 +142,12 @@ const CreateTicket = ({handleClose, setLoading}) => {
         cache: 'no-cache',
         method: 'POST',
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({subject, body, metadata}),
+        body: JSON.stringify({subject, body, metadata, asset, email: contact}),
       })
       .catch(err => {
         console.log(err.message)
       })
+    await sleep(1000)
     setTicketListing(v => v + 1)
     setLoading(false)
   }
@@ -145,10 +155,14 @@ const CreateTicket = ({handleClose, setLoading}) => {
   return (
     <form id="ticket-form">
       <FormGroup>
+        <h3>Ticket Contact</h3>
+        <Input id="ticket-contact" value={contact} onChange={onContactChange} />
         <h3>Ticket Subject</h3>
         <Input id="ticket-sub" value={subject} onChange={onTextChange} />
         <h3>Ticket Description</h3>
         <TextField id="ticket-body" value={body} multiline={true} rows={5} onChange={onBodyChange} />
+        <h3>Ticket Asset</h3>
+        <Input id="ticket-asset" value={asset} onChange={onAssetChange} />
         <h3>Ticket Metadata(optional)</h3>
         <TextField id="ticket-metadata" value={metadata} multiline={true} rows={2} onChange={onMetadataChange} />
         <div style={{marginTop:"1em"}} />
@@ -193,17 +207,21 @@ function TicketListing() {
         <Table sx={{minWidth: 700}} aria-label="customized table">
           <TableHead>
             <TableRow>
+              <StyledTableCell align="left">Contact</StyledTableCell>
               <StyledTableCell>Subject</StyledTableCell>
               <StyledTableCell align="left">Body</StyledTableCell>
               <StyledTableCell align="left">ID</StyledTableCell>
+              <StyledTableCell align="left">Asset</StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {tickets.map(t => (
               <StyledTableRow key={t._id}>
-                <StyledTableCell component="th" scope="row">{t.subject}</StyledTableCell>
+                <StyledTableCell align="left">{t.contactId}</StyledTableCell>
+                <StyledTableCell align="left">{t.subject}</StyledTableCell>
                 <StyledTableCell align="left">{t.body}</StyledTableCell>
                 <StyledTableCell align="left">{t._id}</StyledTableCell>
+                <StyledTableCell align="left">{t.assetId}</StyledTableCell>
               </StyledTableRow>
             ))}
           </TableBody>
