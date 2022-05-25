@@ -10,6 +10,7 @@
   vars:
     mongodb_net_http_enabled: true
     mongodb_net_bindip: 0.0.0.0
+    mongodb_pymongo_pip_version: 4.1.1
     mongodb_security_authorization: "enabled"
     mongodb_users:
       - {
