@@ -12,9 +12,7 @@ pipeline {
     }
     stage('Build') {
       steps {
-        dir("frontend") {
-          sh 'scripts/build_frontend.sh'
-        }
+        sh 'scripts/build_frontend.sh'
       }
     }
     stage('Create Image') {
