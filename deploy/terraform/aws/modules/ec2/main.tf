@@ -55,7 +55,7 @@ resource "aws_instance" "instance-server" {
   }
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = "t2.micro"
-  associate_public_ip_address = true
+  associate_public_ip_address = false
   subnet_id                   = var.subnet
   vpc_security_group_ids      = compact([aws_security_group.ingress-from-all.id, var.extra_sg])
 
