@@ -3,7 +3,7 @@ pipeline {
   environment {
     LW_ACCESS_TOKEN = credentials('lw-access-token')
     LW_ACCOUNT_NAME = credentials('lw-account-name')
-    IMAGE_TAG = env.BUILD_ID
+    IMAGE_TAG = "${env.BUILD_ID}"
   }
   stages {
     stage('checkout') {
