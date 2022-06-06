@@ -1,0 +1,32 @@
+pipeline {
+  agent { label 'agent' }
+  environment {
+    LW_ACCESS_TOKEN = credentials('lw-access-token')
+    LW_ACCOUNT_NAME = credentials('lw-account-name')
+  }
+  stages {
+    stage('Build') {
+      steps {
+        dir("frontend") {
+          sh 'npm ci'
+          sh 'npm run build'
+        }
+      }
+    }
+    stage('Create Image') {
+      steps {
+        def customImage = docker.build("detcaccounts/ticketing-bff:${env.BUILD_ID}", "-f docker/Dockerfile_frontend ./frontend"
+      }
+    }
+    stage('Scan') {
+        steps {
+            sh "curl -L https://github.com/lacework/lacework-vulnerability-scanner/releases/latest/download/lw-scanner-linux-amd64 -o lw-scanner"
+            sh "chmod +x lw-scanner"
+            sh "./lw-scanner image evaluate detcaccounts/ticketing-bff ${env.BUILD_ID} --build-id ${env.BUILD_ID} --build-plan ${JOB_NAME} --policy"
+        }
+    }
+    /* stage('Deploy') { */
+    /*   sh 'detc create --plan https://raw.githubusercontent.com/lacework-demo/ticketing-app/main/deploy/ticketing-gcp.yaml --apply --trace' */
+    /* } */
+  }
+}
