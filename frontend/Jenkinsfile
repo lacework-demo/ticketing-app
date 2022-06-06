@@ -13,15 +13,14 @@ pipeline {
     stage('Build') {
       steps {
         dir("frontend") {
-          sh 'npm ci'
-          sh 'npm run build'
+          sh 'scripts/build_frontend.sh'
         }
       }
     }
     stage('Create Image') {
       steps {
         script {
-          docker.build("detcaccounts/ticketing-bff:${env.BUILD_ID}", "-f docker/Dockerfile_frontend ./frontend")
+          docker.build("detcaccounts/ticketing-bff:${env.BUILD_ID}", "-f docker/Dockerfile_frontend ./artifacts")
         }
       }
     }
