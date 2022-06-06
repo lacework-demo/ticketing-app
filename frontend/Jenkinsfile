@@ -20,7 +20,9 @@ pipeline {
     }
     stage('Create Image') {
       steps {
-        docker.build("detcaccounts/ticketing-bff:${env.BUILD_ID}", "-f docker/Dockerfile_frontend ./frontend")
+        script {
+          docker.build("detcaccounts/ticketing-bff:${env.BUILD_ID}", "-f docker/Dockerfile_frontend ./frontend")
+        }
       }
     }
     stage('Scan') {
