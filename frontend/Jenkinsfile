@@ -5,6 +5,9 @@ pipeline {
     LW_ACCOUNT_NAME = credentials('lw-account-name')
   }
   stages {
+    stage('checkout') {
+      checkout scm
+    }
     stage('Build') {
       steps {
         dir("frontend") {
