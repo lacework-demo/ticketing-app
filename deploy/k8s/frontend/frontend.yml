@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: ticketing-bff
-        image: detcaccounts/ticketing-bff
+        image: detcaccounts/ticketing-bff:${IMAGE_TAG:-latest}
         imagePullPolicy: Always
         env:
         - name: PORT
