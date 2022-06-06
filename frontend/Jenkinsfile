@@ -18,7 +18,7 @@ pipeline {
     }
     stage('Create Image') {
       steps {
-        def customImage = docker.build("detcaccounts/ticketing-bff:${env.BUILD_ID}", "-f docker/Dockerfile_frontend ./frontend"
+        def customImage = docker.build("detcaccounts/ticketing-bff:${env.BUILD_ID}", "-f docker/Dockerfile_frontend ./frontend")
       }
     }
     stage('Scan') {
