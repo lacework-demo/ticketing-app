@@ -31,7 +31,9 @@ pipeline {
         }
     }
     stage('Deploy') {
-      sh 'detc create --plan https://raw.githubusercontent.com/lacework-demo/ticketing-app/ipcrm/jenkinsfile_frontend/deploy/ticketing-gcp.yaml --apply --trace --step frontend-k8s'
+      steps {
+        sh 'detc create --plan https://raw.githubusercontent.com/lacework-demo/ticketing-app/ipcrm/jenkinsfile_frontend/deploy/ticketing-gcp.yaml --apply --trace --step frontend-k8s'
+      }
     }
   }
 }
