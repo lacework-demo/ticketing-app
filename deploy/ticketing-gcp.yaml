@@ -181,7 +181,8 @@ ticketingapp:
         replicas: 2
         datalayer_backend: !lookup /datalayer-app/outputs/datalayer_backend
         cluster_name: !lookup /gcp-k8s/k8s/outputs/cluster_name
-        image_tag: "${IMAGE_TAG:-latest}"
+        #image_tag: "${IMAGE_TAG:-latest}"
+        image_tag: "${IMAGE_TAG}"
         wait_for:
            ticketing-frontend:
              resource_type: svc
