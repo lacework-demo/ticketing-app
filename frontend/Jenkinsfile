@@ -35,7 +35,7 @@ pipeline {
     }
     stage('Deploy') {
       steps {
-        sh "export IMAGE_TAG=${env.BUILD_ID}-${env.EXECUTOR_NUMBER};detc create --plan https://raw.githubusercontent.com/lacework-demo/ticketing-app/ipcrm/jenkinsfile_frontend/deploy/ticketing-gcp.yaml --apply --trace --step frontend-k8s"
+        sh "export IMAGE_TAG=\"${env.BUILD_ID}-${env.EXECUTOR_NUMBER}\";detc create --plan https://raw.githubusercontent.com/lacework-demo/ticketing-app/ipcrm/jenkinsfile_frontend/deploy/ticketing-gcp.yaml --apply --trace --step frontend-k8s"
       }
     }
   }
