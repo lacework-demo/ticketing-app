@@ -18,7 +18,10 @@ pipeline {
     stage('Create Image') {
       steps {
         script {
-          docker.build("detcaccounts/ticketing-bff:${env.BUILD_ID}", "-f docker/Dockerfile_frontend ./artifacts")
+          docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-access-token') {
+            def customImage = docker.build("detcaccounts/ticketing-bff:${env.BUILD_ID}", "-f docker/Dockerfile_frontend ./artifacts")
+            customImage.push()
+          }
         }
       }
     }
