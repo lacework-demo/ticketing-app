@@ -3,7 +3,6 @@ pipeline {
   environment {
     LW_ACCESS_TOKEN = credentials('lw-access-token')
     LW_ACCOUNT_NAME = credentials('lw-account-name')
-    IMAGE_TAG = "${env.BUILD_ID}"
   }
   stages {
     stage('checkout') {
@@ -33,7 +32,7 @@ pipeline {
     }
     stage('Deploy') {
       steps {
-        sh 'detc create --plan https://raw.githubusercontent.com/lacework-demo/ticketing-app/ipcrm/jenkinsfile_frontend/deploy/ticketing-gcp.yaml --apply --trace --step frontend-k8s'
+        sh "export IMAGE_TAG=${env.BUILD_ID};detc create --plan https://raw.githubusercontent.com/lacework-demo/ticketing-app/ipcrm/jenkinsfile_frontend/deploy/ticketing-gcp.yaml --apply --trace --step frontend-k8s"
       }
     }
   }
