@@ -118,6 +118,11 @@ ticketingapp:
       needs:
         - datalayer-app
       helpers:
+        - helper: WriteValue
+          run_on_dryrun: true
+          args:
+            name: kubectl_config
+            dstfile: kubectl
         - helper: GenerateOutput
           run_on_dryrun: true
           lifecycle:
@@ -148,6 +153,11 @@ ticketingapp:
         - datalayer-app
         - services-k8s
       helpers:
+        - helper: WriteValue
+          run_on_dryrun: true
+          args:
+            name: kubectl_config
+            dstfile: kubectl
         - helper: GenerateOutput
           run_on_dryrun: true
           lifecycle:
