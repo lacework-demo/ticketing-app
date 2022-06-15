@@ -30,12 +30,11 @@ pipeline {
             sh "curl -L https://github.com/lacework/lacework-vulnerability-scanner/releases/latest/download/lw-scanner-linux-amd64 -o lw-scanner"
             sh "chmod +x lw-scanner"
             sh "./lw-scanner image evaluate detcaccounts/ticketing-bff ${env.BUILD_ID}-${EXECUTOR_NUMBER} --build-id ${env.BUILD_ID} --build-plan ${JOB_NAME} -c --fail-on-violation-exit-code 1 --critical-violation-exit-code 2 --high-violation-exit-code 3 --medium-violation-exit-code 4 --low-violation-exit-code 5 --info-violation-exit-code 6 --policy"
-            /* sh "./lw-scanner image evaluate detcaccounts/ticketing-bff ${env.BUILD_ID} --build-id ${env.BUILD_ID} --build-plan ${JOB_NAME} -c" */
         }
     }
     stage('Deploy') {
       steps {
-        sh "export DETC_TICKETING_IMAGE_TAG=\"${env.BUILD_ID}-${env.EXECUTOR_NUMBER}\";detc create --plan https://raw.githubusercontent.com/lacework-demo/ticketing-app/ipcrm/jenkinsfile_frontend/deploy/ticketing-gcp.yaml --apply --trace --step frontend-k8s"
+        sh "export DETC_TICKETING_IMAGE_TAG=\"${env.BUILD_ID}-${env.EXECUTOR_NUMBER}\";detc create --plan https://raw.githubusercontent.com/lacework-demo/ticketing-app/main/deploy/ticketing-gcp.yaml --apply --trace --step frontend-k8s"
       }
     }
   }
