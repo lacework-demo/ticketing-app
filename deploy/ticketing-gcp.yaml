@@ -118,6 +118,7 @@ ticketingapp:
       needs:
         - datalayer-app
       helpers:
+        - helper: GKEKubectl
         - helper: WriteValue
           run_on_dryrun: true
           args:
@@ -153,6 +154,7 @@ ticketingapp:
         - datalayer-app
         - services-k8s
       helpers:
+        - helper: GKEKubectl
         - helper: WriteValue
           run_on_dryrun: true
           args:
