@@ -168,7 +168,7 @@ ticketingapp:
             dst: app_url
             format: "http://{{ index . \"ticketing-frontend\" }}"
       source:
-        location: "git+https://github.com/lacework-demo/ticketing-app.git"
+        location: "git+https://github.com/lacework-demo/ticketing-app.git,remotes/origin/ipcrm/jenkinsfile_frontend"
         subdir: "deploy/k8s/frontend"
         templates:
           - frontend.yml
