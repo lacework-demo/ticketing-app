@@ -39,13 +39,25 @@ locals {
   ssh_user = "ubuntu"
 }
 
+resource "google_compute_firewall" "enable-rdp-all" {
+  name    = "ticketing-firewall-rdp-all"
+  network = var.network
+
+  allow {
+    protocol = "tcp"
+    ports    = ["3389"]
+  }
+
+  source_ranges = toset(["0.0.0.0/0"])
+}
+
 resource "google_compute_firewall" "enable-ssh-all" {
   name    = "ticketing-firewall-ssh-all"
   network = var.network
 
   allow {
     protocol = "tcp"
-    ports    = ["22", "3889"]
+    ports    = ["22"]
   }
 
   source_ranges = toset(["0.0.0.0/0"])
