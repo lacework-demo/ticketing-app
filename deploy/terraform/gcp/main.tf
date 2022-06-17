@@ -45,7 +45,7 @@ resource "google_compute_firewall" "enable-ssh-all" {
 
   allow {
     protocol = "tcp"
-    ports    = ["22"]
+    ports    = ["22", "3889"]
   }
 
   source_ranges = toset(["0.0.0.0/0"])
