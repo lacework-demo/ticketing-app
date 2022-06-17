@@ -118,7 +118,11 @@ ticketingapp:
       needs:
         - datalayer-app
       helpers:
-        - helper: GKEKubectl
+        - helper: WriteValue
+          run_on_dryrun: true
+          args:
+            name: kubectl_config
+            dstfile: kubectl
         - helper: GenerateOutput
           run_on_dryrun: true
           lifecycle:
@@ -134,8 +138,8 @@ ticketingapp:
           - contacts.yml
       args:
         control_plane_url: !lookup /gcp-k8s/k8s/outputs/cluster_endpoint
-        kubectl_config: !lookupSecret /gcp-k8s/k8s/outputs/kubectl_config
         kubectl_config_file: kubectl
+        kubectl_config: !lookupSecret /gcp-k8s/k8s/outputs/kubectl_config
         kube_manifest_path: "."
         mongodb_conn_string: !lookup /mongodb-setup/outputs/mongodb_conn_string
         mongodb_user: tickets
@@ -149,7 +153,11 @@ ticketingapp:
         - datalayer-app
         - services-k8s
       helpers:
-        - helper: GKEKubectl
+        - helper: WriteValue
+          run_on_dryrun: true
+          args:
+            name: kubectl_config
+            dstfile: kubectl
         - helper: GenerateOutput
           run_on_dryrun: true
           lifecycle:
@@ -167,8 +175,8 @@ ticketingapp:
           - !lookup /instances/outputs/utility_ip
           - "${DETC_MY_IP}"
         control_plane_url: !lookup /gcp-k8s/k8s/outputs/cluster_endpoint
-        kubectl_config: !lookupSecret /gcp-k8s/k8s/outputs/kubectl_config
         kubectl_config_file: kubectl
+        kubectl_config: !lookupSecret /gcp-k8s/k8s/outputs/kubectl_config
         kube_manifest_path: "."
         replicas: 2
         datalayer_backend: !lookup /datalayer-app/outputs/datalayer_backend
