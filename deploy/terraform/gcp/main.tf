@@ -8,7 +8,7 @@ variable "datalayer_instances" {
 }
 
 variable "datalayer_port" {
-  default = 8999
+  default = 9000
 }
 
 terraform {
