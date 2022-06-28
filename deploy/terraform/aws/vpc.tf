@@ -19,7 +19,7 @@ resource "aws_subnet" "utility_subnet" {
 resource "aws_subnet" "utility_subnet1" {
   vpc_id                  = aws_vpc.utility_vpc.id
   cidr_block              = "10.0.6.0/24"
-  map_public_ip_on_launch = "true"
+  map_public_ip_on_launch = false
   availability_zone       = "${var.region}b"
   tags = {
     Name = "utility_subnet1"
