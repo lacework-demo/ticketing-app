@@ -15,7 +15,7 @@ pipeline {
         sh 'scripts/build_frontend.sh'
       }
     }
-    stage('Create Image') {
+    stage('Create Image & Push') {
       steps {
         script {
           docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-access-token') {
@@ -23,6 +23,14 @@ pipeline {
             customImage.push()
           }
         }
+      }
+    }
+
+    stage('Setup Kubectl Command') {
+      steps {
+        sh "detc ls gcp-k8s k8s kubectl_config > ${WORKSPACE_TMP}/k.conf"
+        sh "detc secret print gcp.service_account_data | tr -d '\n'|sed 's/-----END/\\\n-----END/g'|sed 's/-----BEGIN/\\\n-----BEGIN/g'|sed 's/KEY-----/KEY-----\\\n/g' > ${WORKSPACE_TMP}/key.json"
+        sh "detc secret print gcp.project_id > ${WORKSPACE_TMP}/project_id"
       }
     }
     stage('Scan') {
@@ -34,7 +42,10 @@ pipeline {
     }
     stage('Deploy') {
       steps {
-        sh "export DETC_TICKETING_IMAGE_TAG=\"${env.BUILD_ID}-${env.EXECUTOR_NUMBER}\";detc create --plan https://raw.githubusercontent.com/lacework-demo/ticketing-app/main/deploy/ticketing-gcp.yaml --apply --trace --step frontend-k8s"
+
+        sh "export GOOGLE_APPLICATION_CREDENTIALS=${WORKSPACE_TMP}/key.json"
+        sh "export GOOGLE_CLOUD_PROJECT=\$(cat ${WORKSPACE_TMP}/project_id)"
+        sh "kubectl --kubeconfig ${WORKSPACE_TMP}/k.conf set image deployment/ticketing-bff ticketing-bff=detcaccounts/ticketing-bff:${env.BUILD_ID}-${EXECUTOR_NUMBER}"
       }
     }
   }
