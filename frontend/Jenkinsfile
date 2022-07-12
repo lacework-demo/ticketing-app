@@ -1,8 +1,14 @@
+def pipelineContext = [:]
+
 pipeline {
   agent { label 'agent' }
   environment {
     LW_ACCESS_TOKEN = credentials('lw-access-token')
     LW_ACCOUNT_NAME = credentials('lw-account-name')
+    GITREV = sh(
+      script: "printf \$(git rev-parse --short ${GIT_COMMIT})",
+      returnStdout: true
+    )
   }
   stages {
     stage('checkout') {
@@ -15,38 +21,54 @@ pipeline {
         sh 'scripts/build_frontend.sh'
       }
     }
-    stage('Create Image & Push') {
+    stage('Create Image') {
       steps {
         script {
+          def rev 
           docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-access-token') {
-            def customImage = docker.build("detcaccounts/ticketing-bff:${env.BUILD_ID}-${EXECUTOR_NUMBER}", "-f docker/Dockerfile_frontend ./artifacts")
-            customImage.push()
+            pipelineContext.customImage = docker.build("detcaccounts/ticketing-bff:${env.BUILD_ID}-${GITREV}", "-f docker/Dockerfile_frontend ./artifacts")
           }
         }
-      }
-    }
-
-    stage('Setup Kubectl Command') {
-      steps {
-        sh "detc ls gcp-k8s k8s kubectl_config > ${WORKSPACE_TMP}/k.conf"
-        sh "detc secret print gcp.service_account_data | tr -d '\n'|sed 's/-----END/\\\\n-----END/g'|sed 's/-----BEGIN/\\\\n-----BEGIN/g'|sed 's/KEY-----/KEY-----\\\\n/g' > ${WORKSPACE_TMP}/key.json"
-        sh "detc secret print gcp.project_id > ${WORKSPACE_TMP}/project_id"
-        sh "export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${WORKSPACE_TMP}/key.json"
-        sh "export GOOGLE_APPLICATION_CREDENTIALS=${WORKSPACE_TMP}/key.json"
-        sh "export GOOGLE_CLOUD_PROJECT=\$(cat ${WORKSPACE_TMP}/project_id)"
-        sh "export CLOUDSDK_CORE_PROJECT=\$(cat ${WORKSPACE_TMP}/project_id)"
       }
     }
     stage('Scan') {
         steps {
             sh "curl -L https://github.com/lacework/lacework-vulnerability-scanner/releases/latest/download/lw-scanner-linux-amd64 -o lw-scanner"
             sh "chmod +x lw-scanner"
-            sh "./lw-scanner image evaluate -w=false detcaccounts/ticketing-bff ${env.BUILD_ID}-${EXECUTOR_NUMBER} --build-id ${env.BUILD_ID} --build-plan ${JOB_NAME} -c --fail-on-violation-exit-code 1 --critical-violation-exit-code 2 --high-violation-exit-code 3 --medium-violation-exit-code 4 --low-violation-exit-code 5 --info-violation-exit-code 6 --policy --html --html-file scan-result.html"
+            sh "./lw-scanner image evaluate -w=false detcaccounts/ticketing-bff ${env.BUILD_ID}-${GITREV} --build-id ${env.BUILD_ID} --build-plan ${JOB_NAME} -c --fail-on-violation-exit-code 1 --critical-violation-exit-code 2 --high-violation-exit-code 3 --medium-violation-exit-code 4 --low-violation-exit-code 5 --info-violation-exit-code 6 --policy --fixable --html --html-file scan-result.html"
         }
     }
-    stage('Deploy') {
+    stage('Push Image') {
       steps {
-        sh "kubectl --kubeconfig ${WORKSPACE_TMP}/k.conf set image deployment/ticketing-bff ticketing-bff=detcaccounts/ticketing-bff:${env.BUILD_ID}-${EXECUTOR_NUMBER}"
+        script {
+          docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-access-token') {
+            pipelineContext.customImage.push()
+          }
+        }
+      }
+    }
+    stage('Prep Deploy'){
+      steps {
+        sh "detc ls gcp-k8s k8s kubectl_config > ${WORKSPACE_TMP}/k.conf"
+        sh "detc secret print gcp.service_account_data | tr -d '\n'|sed 's/-----END/\\\\n-----END/g'|sed 's/-----BEGIN/\\\\n-----BEGIN/g'|sed 's/KEY-----/KEY-----\\\\n/g' > ${WORKSPACE_TMP}/key.json"
+        sh "detc secret print gcp.project_id > ${WORKSPACE_TMP}/project_id"
+      }
+    }
+    stage('Deploy') {
+      environment {
+        CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE = "${WORKSPACE_TMP}/key.json"
+        GOOGLE_APPLICATION_CREDENTIALS = "${WORKSPACE_TMP}/key.json"
+        GOOGLE_CLOUD_PROJECT = sh(
+          script: "printf \$(cat ${WORKSPACE_TMP}/project_id)",
+          returnStdout: true
+        )
+        CLOUDSDK_CORE_PROJECT = sh(
+          script: "printf \$(cat ${WORKSPACE_TMP}/project_id)",
+          returnStdout: true
+        )
+      }
+      steps {
+        sh "kubectl --kubeconfig ${WORKSPACE_TMP}/k.conf set image deployment/ticketing-bff ticketing-bff=detcaccounts/ticketing-bff:${env.BUILD_ID}-${GITREV}"
       }
     }
   }
