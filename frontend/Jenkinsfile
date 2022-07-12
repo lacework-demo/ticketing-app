@@ -29,22 +29,23 @@ pipeline {
     stage('Setup Kubectl Command') {
       steps {
         sh "detc ls gcp-k8s k8s kubectl_config > ${WORKSPACE_TMP}/k.conf"
-        sh "detc secret print gcp.service_account_data | tr -d '\n'|sed 's/-----END/\\\n-----END/g'|sed 's/-----BEGIN/\\\n-----BEGIN/g'|sed 's/KEY-----/KEY-----\\\n/g' > ${WORKSPACE_TMP}/key.json"
+        sh "detc secret print gcp.service_account_data | tr -d '\n'|sed 's/-----END/\\\\n-----END/g'|sed 's/-----BEGIN/\\\\n-----BEGIN/g'|sed 's/KEY-----/KEY-----\\\\n/g' > ${WORKSPACE_TMP}/key.json"
         sh "detc secret print gcp.project_id > ${WORKSPACE_TMP}/project_id"
+        sh "export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${WORKSPACE_TMP}/key.json"
+        sh "export GOOGLE_APPLICATION_CREDENTIALS=${WORKSPACE_TMP}/key.json"
+        sh "export GOOGLE_CLOUD_PROJECT=\$(cat ${WORKSPACE_TMP}/project_id)"
+        sh "export CLOUDSDK_CORE_PROJECT=\$(cat ${WORKSPACE_TMP}/project_id)"
       }
     }
     stage('Scan') {
         steps {
             sh "curl -L https://github.com/lacework/lacework-vulnerability-scanner/releases/latest/download/lw-scanner-linux-amd64 -o lw-scanner"
             sh "chmod +x lw-scanner"
-            sh "./lw-scanner image evaluate detcaccounts/ticketing-bff ${env.BUILD_ID}-${EXECUTOR_NUMBER} --build-id ${env.BUILD_ID} --build-plan ${JOB_NAME} -c --fail-on-violation-exit-code 1 --critical-violation-exit-code 2 --high-violation-exit-code 3 --medium-violation-exit-code 4 --low-violation-exit-code 5 --info-violation-exit-code 6 --policy --html --html-file scan-result.html"
+            sh "./lw-scanner image evaluate -w=false detcaccounts/ticketing-bff ${env.BUILD_ID}-${EXECUTOR_NUMBER} --build-id ${env.BUILD_ID} --build-plan ${JOB_NAME} -c --fail-on-violation-exit-code 1 --critical-violation-exit-code 2 --high-violation-exit-code 3 --medium-violation-exit-code 4 --low-violation-exit-code 5 --info-violation-exit-code 6 --policy --html --html-file scan-result.html"
         }
     }
     stage('Deploy') {
       steps {
-
-        sh "export GOOGLE_APPLICATION_CREDENTIALS=${WORKSPACE_TMP}/key.json"
-        sh "export GOOGLE_CLOUD_PROJECT=\$(cat ${WORKSPACE_TMP}/project_id)"
         sh "kubectl --kubeconfig ${WORKSPACE_TMP}/k.conf set image deployment/ticketing-bff ticketing-bff=detcaccounts/ticketing-bff:${env.BUILD_ID}-${EXECUTOR_NUMBER}"
       }
     }
