@@ -7,10 +7,6 @@ variable "datalayer_instances" {
   default = 1
 }
 
-variable "datalayer_port" {
-  default = 8999
-}
-
 terraform {
   required_providers {
     google = {
@@ -51,18 +47,15 @@ resource "google_compute_firewall" "enable-ssh-all" {
   source_ranges = toset(["0.0.0.0/0"])
 }
 
-resource "google_compute_firewall" "enable-intra-8999-all" {
-  name    = "ticketing-firewall-8999-internal"
+resource "google_compute_firewall" "enable-all-private-cluster-ip-ranges" {
+  name    = "ticketing-firewall-internal"
   network = var.network
 
   allow {
     protocol = "all"
   }
-  source_ranges = toset(["10.0.0.0/8"])
+  source_ranges = toset(["10.0.0.0/22","192.168.0.0/22","192.168.64.0/22"])
 }
-
-
-
 
 module "gcp-instance" {
   source   = "./modules/gcpcompute"
