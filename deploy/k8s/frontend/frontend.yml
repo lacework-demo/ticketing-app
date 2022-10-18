@@ -48,4 +48,3 @@ spec:
       targetPort: 8080
   selector:
     app: ticketing-bff
-  loadBalancerSourceRanges: [ {{range  $i, $e := .cidr_block }}{{if ne . ""}}{{if $i}},{{end}}{{$e}}/32{{end}}{{end}} ]
