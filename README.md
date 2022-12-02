@@ -7,6 +7,7 @@ This app records issues or service requests for our internal use.
 > Note: This application is for demonstration purposes only
 
 ## Run locally
+
 Execute the app locally vai `docker-compose`; from the root of the project:
 
 ```
