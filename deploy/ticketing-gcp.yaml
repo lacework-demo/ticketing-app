@@ -1,5 +1,8 @@
 ---
 ticketingapp:
+  required_secrets:
+    - path: lacework.deploy_agent
+      default: true
   needs:
     - gcp-k8s
   steps:
@@ -28,11 +31,14 @@ ticketingapp:
           - utility_vpc_subnet_id1
           - utility_vpc_subnet_id2
           - utility_ip
+
     - name: mongodb-setup
       extension: Ansible
       source:
-        location: "git+https://github.com/lacework-demo/ticketing-app.git"
-        subdir: "deploy/ansible"
+        - location: "git+https://github.com/lacework-demo/ticketing-app.git"
+          subdir: "deploy/ansible"
+        - location: "git+https://github.com/lacework-dev/detc-resources.git"
+          subdir: "util/laceworkagent/ansible"
       tags: application
       needs:
         - instances
@@ -60,19 +66,26 @@ ticketingapp:
           roles:
             - undergreen.mongodb
         user: "ubuntu"
-        playbook: mongodb.yml
+        playbook:
+          - mongodb.yml
+          - agent.yaml
         privilege_escalation:
           become: true
         extra_vars:
+          lacework_deploy_agent: !secret lacework.deploy_agent
+          lacework_access_token: !secret lacework.access_token
           mongodb_db: tickets
           mongodb_user: tickets
           mongodb_pass: tickets
           lw_access_token: !secret lacework.access_token
+
     - name: datalayer-app
       extension: Ansible
       source:
-        location: "git+https://github.com/lacework-demo/ticketing-app.git"
-        subdir: "deploy/ansible"
+        - location: "git+https://github.com/lacework-demo/ticketing-app.git"
+          subdir: "deploy/ansible"
+        - location: "git+https://github.com/lacework-dev/detc-resources.git"
+          subdir: "util/laceworkagent/ansible"
       tags: application
       needs:
         - instances
@@ -103,7 +116,9 @@ ticketingapp:
             - geerlingguy.nodejs
             - weareinteractive.pm2
         user: "ubuntu"
-        playbook: nodeapp.yml
+        playbook:
+          - nodeapp.yml
+          - agent.yaml
         privilege_escalation:
           become: true
         extra_vars:
@@ -111,7 +126,8 @@ ticketingapp:
           mongodb_conn_string: !lookup /mongodb-setup/outputs/mongodb_conn_string
           mongodb_user: tickets
           mongodb_pass: tickets
-          lw_access_token: !secret lacework.access_token
+          lacework_deploy_agent: !secret lacework.deploy_agent
+          lacework_access_token: !secret lacework.access_token
 
     - name: services-k8s
       extension: Kubectl
