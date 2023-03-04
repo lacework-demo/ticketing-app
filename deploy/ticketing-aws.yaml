@@ -3,6 +3,9 @@ ticketingapp:
   required_secrets:
     - path: lacework.deploy_agent
       default: true
+    - path: lacework.api_url
+      description: lacework API url
+      default: https://api.lacework.net
   needs:
     - aws-k8s
   steps:
@@ -74,6 +77,7 @@ ticketingapp:
         extra_vars:
           lacework_deploy_agent: !secret lacework.deploy_agent
           lacework_access_token: !secret lacework.access_token
+          lacework_api_server: !secret lacework.api_url
           mongodb_db: tickets
           mongodb_user: tickets
           mongodb_pass: tickets
@@ -127,6 +131,7 @@ ticketingapp:
           mongodb_pass: tickets
           lacework_deploy_agent: !secret lacework.deploy_agent
           lacework_access_token: !secret lacework.access_token
+          lacework_api_server: !secret lacework.api_url
 
     - name: services-k8s
       extension: Kubectl
