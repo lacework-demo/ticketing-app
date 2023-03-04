@@ -245,8 +245,8 @@ ticketingapp:
       args:
         inventory:
           - !lookup /instances/outputs/mongodb_ip
-          - !lookup /instances/outputs/private_ips,0
-          - !lookup /instances/outputs/private_ips,1
+          - !lookup /instances/outputs/ips,0
+          - !lookup /instances/outputs/ips,1
         private_key: instance.pem
         user: "ubuntu"
         playbook: agent.yaml
