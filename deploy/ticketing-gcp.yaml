@@ -38,10 +38,8 @@ ticketingapp:
     - name: mongodb-setup
       extension: Ansible
       source:
-        - location: "git+https://github.com/lacework-demo/ticketing-app.git"
-          subdir: "deploy/ansible"
-        - location: "git+https://github.com/lacework-dev/detc-resources.git"
-          subdir: "util/laceworkagent/ansible"
+        location: "git+https://github.com/lacework-demo/ticketing-app.git"
+        subdir: "deploy/ansible"
       tags: application
       needs:
         - instances
@@ -69,15 +67,10 @@ ticketingapp:
           roles:
             - undergreen.mongodb
         user: "ubuntu"
-        playbook:
-          - mongodb.yml
-          - agent.yaml
+        playbook: mongodb.yml
         privilege_escalation:
           become: true
         extra_vars:
-          lacework_deploy_agent: !secret lacework.deploy_agent
-          lacework_access_token: !secret lacework.access_token
-          lacework_api_server: !secret lacework.api_url
           mongodb_db: tickets
           mongodb_user: tickets
           mongodb_pass: tickets
@@ -85,10 +78,8 @@ ticketingapp:
     - name: datalayer-app
       extension: Ansible
       source:
-        - location: "git+https://github.com/lacework-demo/ticketing-app.git"
-          subdir: "deploy/ansible"
-        - location: "git+https://github.com/lacework-dev/detc-resources.git"
-          subdir: "util/laceworkagent/ansible"
+        location: "git+https://github.com/lacework-demo/ticketing-app.git"
+        subdir: "deploy/ansible"
       tags: application
       needs:
         - instances
@@ -121,7 +112,6 @@ ticketingapp:
         user: "ubuntu"
         playbook:
           - nodeapp.yml
-          - agent.yaml
         privilege_escalation:
           become: true
         extra_vars:
@@ -129,9 +119,6 @@ ticketingapp:
           mongodb_conn_string: !lookup /mongodb-setup/outputs/mongodb_conn_string
           mongodb_user: tickets
           mongodb_pass: tickets
-          lacework_deploy_agent: !secret lacework.deploy_agent
-          lacework_access_token: !secret lacework.access_token
-          lacework_api_server: !secret lacework.api_url
 
     - name: services-k8s
       extension: Kubectl
@@ -236,3 +223,36 @@ ticketingapp:
           url: !lookup /frontend-k8s/outputs/ticketing-frontend
         privilege_escalation:
           become: true
+
+    - name: lacework-agent
+      extension: Ansible
+      condition: !secret lacework.deploy_agent == true
+      source:
+        location: "git+https://github.com/lacework-dev/detc-resources.git"
+        subdir: "util/laceworkagent/ansible"
+      tags: application
+      needs:
+        - instances
+        - mongodb-setup
+        - datalayer-app
+      helpers:
+        - helper: WriteValue # Write out the pem file created for ec2 instance
+          run_on_dryrun: true
+          args:
+            raw_value: !lookupSecret /instances/outputs/pem
+            dstfile: instance.pem
+            mode: 0600
+      args:
+        inventory:
+          - !lookup /instances/outputs/mongodb_ip
+          - !lookup /instances/outputs/private_ips,0
+          - !lookup /instances/outputs/private_ips,1
+        private_key: instance.pem
+        user: "ubuntu"
+        playbook: agent.yaml
+        privilege_escalation:
+          become: true
+        extra_vars:
+          lacework_deploy_agent: !secret lacework.deploy_agent
+          lacework_access_token: !secret lacework.access_token
+          lacework_api_server: !secret lacework.api_url
