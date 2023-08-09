@@ -58,8 +58,8 @@ jobs:
           load: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-contacts:latest
 
-      - uses: lacework/lw-scanner-action@v0.6.0
-        name: Scan contacts container image for vulnerabitilies using Lacework
+      - uses: lacework/lw-scanner-action@v1.3.0
+        name: Scan contacts container image for vulnerabilities using Lacework
         with:
           USE_POLICY: true
           LW_ACCOUNT_NAME: ${{ secrets.LW_ACCOUNT_NAME }} 
@@ -113,8 +113,8 @@ jobs:
           load: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-bff:latest
 
-      - uses: lacework/lw-scanner-action@v0.6.0
-        name: Scan frontend container image for vulnerabitilies using Lacework
+      - uses: lacework/lw-scanner-action@v1.3.0
+        name: Scan frontend container image for vulnerabilities using Lacework
         with:
           USE_POLICY: true
           LW_ACCOUNT_NAME: ${{ secrets.LW_ACCOUNT_NAME }} 
@@ -168,8 +168,8 @@ jobs:
           load: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/ticketing-assets:latest
 
-      - uses: lacework/lw-scanner-action@v0.6.0
-        name: Scan assets container image for vulnerabitilies using Lacework
+      - uses: lacework/lw-scanner-action@v1.3.0
+        name: Scan assets container image for vulnerabilities using Lacework
         with:
           USE_POLICY: true
           LW_ACCOUNT_NAME: ${{ secrets.LW_ACCOUNT_NAME }} 
