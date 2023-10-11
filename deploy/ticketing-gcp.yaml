@@ -63,9 +63,6 @@ ticketingapp:
         inventory: !lookup /instances/outputs/mongodb_ip
         inventory_private: !lookup /instances/outputs/mongodb_private_ip
         private_key: instance.pem
-        galaxy:
-          roles:
-            - undergreen.mongodb
         user: "ubuntu"
         playbook: mongodb.yml
         privilege_escalation:
