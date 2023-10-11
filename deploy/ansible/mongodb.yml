@@ -5,17 +5,74 @@
       become: true
 
 - hosts: all
-  roles:
-    - undergreen.mongodb
-  vars:
-    mongodb_net_http_enabled: true
-    mongodb_net_bindip: 0.0.0.0
-    mongodb_pymongo_pip_version: 4.1.1
-    mongodb_security_authorization: "enabled"
-    mongodb_users:
-      - {
-          name: "{{ mongodb_user }}",
-          password: "{{ mongodb_pass }}",
-          roles: readWrite,
-          database: "{{ mongodb_db }}"
-        }
+  become: true
+  tasks:
+    - name: Import public key
+      apt_key:
+        url: 'https://www.mongodb.org/static/pgp/server-4.4.asc'
+        state: present
+
+    - name: Add repository
+      apt_repository:
+        filename: '/etc/apt/sources.list.d/mongodb-org-4.4.list'
+        repo: 'deb https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse'
+        state: present
+        update_cache: yes
+
+    - name: Install gcc
+      ansible.builtin.apt:
+        name: gcc
+        state: latest
+        fail_on_autoremove: no
+
+    - name: Install python3-devel
+      ansible.builtin.apt:
+        name: python3-dev
+        state: latest
+        fail_on_autoremove: no
+
+    - name: Install python3-setuptools
+      ansible.builtin.apt:
+        name: python3-setuptools
+        state: latest
+        fail_on_autoremove: no
+
+    - name: Install python3-pip
+      ansible.builtin.apt:
+        name: python3-pip
+        state: latest
+        fail_on_autoremove: no
+
+    - name: Install mongoDB
+      apt:
+        name: mongodb-org
+        state: present
+        update_cache: yes
+
+    - name: install pymongo
+      pip: name=pymongo state=latest
+
+    - name: Ensure mongodb is running and and enabled to start automatically on reboots
+      service:
+        name: mongod
+        enabled: yes
+        state: started
+
+    - name: Create user
+      community.mongodb.mongodb_user:
+        database: "{{ mongodb_db }}"
+        name: "{{ mongodb_user }}"
+        password: "{{ mongodb_pass }}"
+        roles: readWrite
+        state: present
+
+    - name: Update mongod configureation to listen on 0.0.0.0
+      replace:
+        path: /etc/mongod.conf
+        regexp: '127.0.0.1'
+        replace: '0.0.0.0'
+
+    - name: Restart mongod
+      ansible.builtin.service:
+        name: mongod
+        state: restarted
