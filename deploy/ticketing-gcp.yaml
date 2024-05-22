@@ -22,6 +22,8 @@ ticketingapp:
           subnet: !lookup /gcp-k8s/k8s/outputs/subnet
           region: !secret gcp.region
           project: !secret gcp.project_id
+          labels: '{"type" = "compute", "deployment" = "ticketing", "environment" = "production" }'
+          disk_labels: '{"type" = "datastore", "deployment" = "ticketing", "environment" = "production", "security" = "crown-jewels" }'
         outputs:
           - datalayer-url
           - datalayer-port
@@ -34,6 +36,35 @@ ticketingapp:
           - utility_vpc_subnet_id1
           - utility_vpc_subnet_id2
           - utility_ip
+
+    - name: newman-instances-ec2
+      extension: Ansible
+      source:
+        location: "git+https://github.com/lacework-demo/ticketing-app.git"
+        subdir: deploy/ansible
+      needs:
+        - instances
+      helpers:
+        - helper: ServiceAvailable
+          args:
+            hostname: !lookup /instances/outputs/ips
+            port: 22
+        - helper: WriteValue
+          run_on_dryrun: true
+          args:
+            raw_value: !lookupSecret /instances/outputs/pem
+            dstfile: instance.pem
+            mode: 0600
+      args:
+        user: "ubuntu"
+        private_key: instance.pem
+        inventory: !lookup /instances/outputs/ips
+        playbook:
+          - newman.yml
+        privilege_escalation:
+          become: true
+        extra_vars:
+          newman_url: "http://localhost:8080"
 
     - name: mongodb-setup
       extension: Ansible

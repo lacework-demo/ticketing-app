@@ -1,8 +1,9 @@
 variable "vpc_id" {}
 variable "subnet" {}
 variable "instance_name" {}
-variable "ports" {
-  default = "22"
+variable "tags" {
+  type = map(string)
+  default = {}
 }
 variable "extra_sg" {}
 variable "key_name" {}
@@ -50,14 +51,12 @@ resource "aws_security_group" "ingress-from-all" {
 }
 
 resource "aws_instance" "instance-server" {
-  tags = {
-    "Hostname" = "${var.instance_name}"
-  }
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = "t2.micro"
   associate_public_ip_address = true
   subnet_id                   = var.subnet
   vpc_security_group_ids      = compact([aws_security_group.ingress-from-all.id, var.extra_sg])
+  tags = merge({ "Hostname" = "${var.instance_name}" }, var.tags)
 
   key_name   = var.key_name
   depends_on = [aws_security_group.ingress-from-all]

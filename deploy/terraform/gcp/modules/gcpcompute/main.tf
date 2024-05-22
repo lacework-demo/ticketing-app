@@ -5,6 +5,8 @@ variable "project" {}
 variable "region" {}
 variable "network" {}
 variable "subnet" {}
+variable "labels" {}
+variable "disk_labels" {}
 variable "enable_service_account" {
   default = false
 }
@@ -27,9 +29,12 @@ resource "google_compute_instance" "instance-server" {
     }
   }
 
+  labels = var.labels
+
   boot_disk {
     initialize_params {
       image = "ubuntu-os-cloud/ubuntu-2004-lts"
+      labels = var.disk_labels
     }
   }
 

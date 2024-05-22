@@ -2,6 +2,14 @@ variable "region" {}
 variable "project" {}
 variable "network" {}
 variable "subnet" {}
+variable "labels" {
+  type = map(string)
+  default = {}
+}
+variable "disk_labels" {
+  type = map(string)
+  default = {}
+}
 
 variable "datalayer_instances" {
   default = 1
@@ -68,6 +76,8 @@ module "gcp-instance" {
   subnet                 = var.subnet
   project                = var.project
   region                 = var.region
+  labels                 = var.labels
+  disk_labels            = var.disk_labels
   enable_service_account = true
 }
 
@@ -80,6 +90,8 @@ module "mongodb-instance" {
   subnet        = var.subnet
   project       = var.project
   region        = var.region
+  labels        = var.labels
+  disk_labels   = var.disk_labels
 }
 
 module "utility-instance" {
@@ -91,8 +103,9 @@ module "utility-instance" {
   subnet        = var.subnet
   project       = var.project
   region        = var.region
+  labels        = var.labels
+  disk_labels   = var.disk_labels
 }
-
 
 output "pem" {
   value     = tls_private_key.keypair.private_key_pem
