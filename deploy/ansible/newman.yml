@@ -8,6 +8,7 @@
       ansible.builtin.apt:
         name: npm
         state: present
+      ignore_errors: true
     - name: Install newman
       command: "npm install -g newman@v5.3.1"
     - name: Create newman config file
