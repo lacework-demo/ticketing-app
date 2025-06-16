@@ -5,8 +5,15 @@
       become: true
 
 - hosts: all
-  roles:
-    - geerlingguy.nodejs
+  become: true
+  tasks:
+    - name: Install nodejs
+      ansible.builtin.apt:
+        name: nodejs
+        state: latest
+        fail_on_autoremove: no
+
+- hosts: all
   tasks:
     - name: Create APP Directory
       file: path=/usr/local/src/app state=directory

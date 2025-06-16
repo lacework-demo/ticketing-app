@@ -9,13 +9,13 @@
   tasks:
     - name: Import public key
       apt_key:
-        url: 'https://www.mongodb.org/static/pgp/server-4.4.asc'
+        url: 'https://www.mongodb.org/static/pgp/server-6.0.asc'
         state: present
 
     - name: Add repository
       apt_repository:
-        filename: '/etc/apt/sources.list.d/mongodb-org-4.4.list'
-        repo: 'deb https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse'
+        filename: '/etc/apt/sources.list.d/mongodb-org-6.0.list'
+        repo: 'deb https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse'
         state: present
         update_cache: yes
 

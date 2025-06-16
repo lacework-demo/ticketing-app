@@ -135,7 +135,6 @@ ticketingapp:
         private_key: instance.pem
         galaxy:
           roles:
-            - geerlingguy.nodejs
             - weareinteractive.pm2
         user: "ubuntu"
         playbook:
