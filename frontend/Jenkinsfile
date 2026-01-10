@@ -68,7 +68,20 @@ pipeline {
         )
       }
       steps {
-        sh "kubectl --kubeconfig ${WORKSPACE_TMP}/k.conf set image deployment/ticketing-bff ticketing-bff=detcaccounts/ticketing-bff:${env.BUILD_ID}-${GITREV}"
+        sh '''#!/bin/bash -x
+          export KUBECONFIG="${WORKSPACE_TMP}/k.conf"
+
+          kubectl set image deployment/ticketing-bff ticketing-bff="detcaccounts/ticketing-bff:${BUILD_ID}-${GITREV}"
+          kubectl rollout status deployment/ticketing-bff --timeout=30s
+          RET=$?
+
+          if [ $RET != 0 ]; then
+            echo "FAILED TO DEPLOY, listing k8s events..."
+            kubectl events
+          fi
+
+          exit $RET
+       '''
       }
     }
   }

@@ -6,7 +6,7 @@ metadata:
   labels:
     app: ticketing-bff
 spec:
-  replicas: {{ .replicas }}
+  replicas: 4
   selector:
     matchLabels:
       app: ticketing-bff
