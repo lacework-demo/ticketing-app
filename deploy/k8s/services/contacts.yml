@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: ticketing-contacts
-        image: detcaccounts/ticketing-contacts
+        image: lwgithub0/ticketing-contacts
         imagePullPolicy: Always
         env:
         - name: PORT

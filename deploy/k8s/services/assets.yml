@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: ticketing-assets
-        image: detcaccounts/ticketing-assets
+        image: lwgithub0/ticketing-assets
         imagePullPolicy: Always
         env:
         - name: PORT
