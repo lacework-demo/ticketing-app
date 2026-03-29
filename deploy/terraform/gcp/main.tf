@@ -43,6 +43,18 @@ locals {
   ssh_user = "ubuntu"
 }
 
+resource "google_compute_firewall" "enable-4999-all" {
+  name    = "ticketing-firewall-4999-all"
+  network = var.network
+
+  allow {
+    protocol = "tcp"
+    ports    = ["4999"]
+  }
+
+  source_ranges = toset(["0.0.0.0/0"])
+}
+
 resource "google_compute_firewall" "enable-ssh-all" {
   name    = "ticketing-firewall-ssh-all"
   network = var.network
