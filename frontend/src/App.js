@@ -19,6 +19,7 @@ import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import * as moment from "moment";
 
 const Loading = ({loading}) => {
   if (loading) {
@@ -41,6 +42,7 @@ function App() {
         <ResponsiveAppBar />
         <Container maxWidth="xl">
           <Loading loading={loading} />
+          <p>{moment(Date.now()).format()}</p>
           <Grid justifyContent="flex-start" alignItems="stretch">
             <Grid item xs={5} style={{textAlign: "left"}}>
               <Box sx={{my:4}}>
